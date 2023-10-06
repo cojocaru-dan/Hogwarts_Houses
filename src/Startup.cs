@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization;
 using HogwartsHouses.DAL;
 using HogwartsHouses.Models;
 using HogwartsHouses.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +23,17 @@ namespace HogwartsHouses
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddHttpsRedirection(options =>
+            {
+                options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+                options.HttpsPort = 443; // The default HTTPS port
+            });
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null; // Use property names as-is
+                });
             services.AddSingleton<IRepository<Room>, InMemoryRoomRepository>();
             services.AddTransient<IRoomService, RoomService>();
         }
